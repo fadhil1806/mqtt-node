@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home Control</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('https://images.unsplash.com/photo-1521747116042-5a810fda9664?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&q=80&w=1080');
+            background-size: cover;
+        }
+
+        .button-container {
+            transition: transform 0.3s;
+        }
+
+        .button-container:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+    <div class="bg-white bg-opacity-90 p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Smart Home Control</h1>
+        
+        <div class="grid grid-cols-1 gap-4">
+            <div class="button-container">
+                <button class="action-button bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded-lg w-full" data-action="on led bar">On LED Bar</button>
+            </div>
+            <div class="button-container">
+                <button class="action-button bg-red-600 hover:bg-red-700 text-white font-semibold py-2 rounded-lg w-full" data-action="off led bar">Off LED Bar</button>
+            </div>
+            <div class="button-container">
+                <button class="action-button bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg w-full" data-action="relay on">Relay On</button>
+            </div>
+            <div class="button-container">
+                <button class="action-button bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 rounded-lg w-full" data-action="relay off">Relay Off</button>
+            </div>
+            <div class="button-container">
+                <button class="action-button bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 rounded-lg w-full" data-action="open window">Open Window</button>
+            </div>
+            <div class="button-container">
+                <button class="action-button bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 rounded-lg w-full" data-action="close window">Close Window</button>
+            </div>
+            <div class="button-container">
+                <button class="action-button bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded-lg w-full" data-action="led rgb on">LED RGB On</button>
+            </div>
+            <div class="button-container">
+                <button class="action-button bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 rounded-lg w-full" data-action="led rgb off">LED RGB Off</button>
+            </div>
+        </div>
+
+        <div id="dhtData" class="mt-6 text-center text-gray-700">
+            <p id="temperature" class="text-xl font-bold"></p>
+            <p id="humidity" class="text-xl font-bold"></p>
+        </div>
+
+        <p id="responseMessage" class="mt-4 text-center text-gray-700"></p>
+    </div>
+
+    <script>
+        // Function to fetch DHT data
+        async function fetchDHTData() {
+            try {
+                const response = await fetch('/api/data/dht');
+                const data = await response.json();
+                console.log(data)
+
+                // Update temperature and humidity
+                document.getElementById('temperature').innerText = `Temperature: ${data.temperature} °C`;
+                document.getElementById('humidity').innerText = `Humidity: ${data.humidity} %`;
+            } catch (error) {
+                console.error('Error fetching DHT data:', error);
+            }
+        }
+
+        // Fetch DHT data every second
+        setInterval(fetchDHTData, 1000);
+
+        // Function to send action to the server
+        async function sendAction(action) {
+            const response = await fetch('/api/data', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: action })
+            });
+
+            const data = await response.json();
+            document.getElementById('responseMessage').innerText = `Response: ${data.received}`;
+        }
+
+        // Event listener for all buttons
+        document.querySelectorAll('.action-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const action = button.getAttribute('data-action');
+                sendAction(action);
+            });
+        });
+    </script>
+</body>
+</html>
